@@ -1,19 +1,27 @@
 ﻿using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using Xayah.Application.Interfaces;
 using Xayah.Web.Models;
 
 namespace Xayah.Web.Controllers
 {
     public class HomeController : Controller
     {
-        public HomeController()
+        public ITransactionAppService _transactionApp { get; set; }
+
+        public HomeController(ITransactionAppService transactionApp)
         {
+            _transactionApp = transactionApp;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var transactionList = await _transactionApp.GetAllTransactions();
+
+
+            return View(transactionList);
         }
 
 
