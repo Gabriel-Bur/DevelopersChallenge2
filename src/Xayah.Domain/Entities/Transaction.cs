@@ -7,7 +7,6 @@ namespace Xayah.Domain.Entities
     {
         [Key]
         public Guid Id { get; set; }
-
         public int AccountId { get; set; }
         public int BankId { get; set; }
         public string TransactionCurrency { get; set; }
