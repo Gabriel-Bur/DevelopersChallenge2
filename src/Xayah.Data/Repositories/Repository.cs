@@ -6,7 +6,7 @@ using Xayah.Data.Interfaces;
 
 namespace Xayah.Data.Repositories
 {
-    public class Repository<T> : IDisposable, IRepository<T> where T : class
+    public class Repository<T> : IRepository<T> where T : class
     {
         protected readonly SqlServerContext context;
         protected readonly DbSet<T> _dbSet;
@@ -84,6 +84,7 @@ namespace Xayah.Data.Repositories
         {
             await context.SaveChangesAsync();
         }
+
         public void Dispose()
         {
             context.Dispose();

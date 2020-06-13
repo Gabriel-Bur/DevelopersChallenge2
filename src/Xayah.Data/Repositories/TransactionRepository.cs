@@ -1,5 +1,5 @@
-﻿using System.Transactions;
-using Xayah.Data.Interfaces;
+﻿using Xayah.Data.Interfaces;
+using Xayah.Domain.Entities;
 
 namespace Xayah.Data.Repositories
 {
