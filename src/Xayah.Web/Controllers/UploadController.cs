@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using Xayah.Application.Interfaces;
 using Xayah.Application.ViewModels.Request;
 
@@ -20,11 +21,11 @@ namespace Xayah.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index(OFXFileViewModelRequest ofxFileViewModel)
+        public async Task<IActionResult> Index(OFXFileViewModelRequest ofxFileViewModel)
         {
             if (ModelState.IsValid)
             {
-                _transactionApp.SaveTransaction(ofxFileViewModel);
+                await _transactionApp.BeginConciliation(ofxFileViewModel);
             }
 
             return View();
