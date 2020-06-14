@@ -7,6 +7,7 @@ using Xayah.Application.Interfaces;
 using Xayah.Application.ViewModels.Request;
 using Xayah.Application.ViewModels.Response;
 using Xayah.Data.Interfaces;
+using Xayah.Domain.Entities;
 
 namespace Xayah.Application.Services
 {
@@ -32,34 +33,42 @@ namespace Xayah.Application.Services
 
             return transaction;
         }
-        public async Task<IEnumerable<TransactionViewModelResponse>> GetAllTransactions()
+        public async Task<IList<TransactionViewModelResponse>> GetAllTransactions()
         {
-            var transactionList = _mapper.Map<IEnumerable<TransactionViewModelResponse>>(
+            var transactionList = _mapper.Map<IList<TransactionViewModelResponse>>(
                 await _transaction.GetAll());
 
             return transactionList;
         }
 
-        public async Task SaveTransaction(OFXFileViewModelRequest OfxFileViewModelRequest)
+        public async Task BeginConciliation(OFXFileViewModelRequest OfxFileViewModelRequest)
         {
-            List<Stream> ListOfFilesAsStream =
-                new List<Stream>();
+            IList<Transaction> ListOfTransactions = await
+                ReadAndConvert(OfxFileViewModelRequest);
+
+            await SaveTransaction(ListOfTransactions);
+
+        }
+
+        private async Task<IList<Transaction>> ReadAndConvert(OFXFileViewModelRequest OfxFileViewModelRequest)
+        {
+            List<Stream> ListOfFilesAsStream = new List<Stream>();
 
             foreach (var file in OfxFileViewModelRequest.Files)
             {
                 ListOfFilesAsStream.Add(file.OpenReadStream());
             }
 
-            await _ofxfilereader.Convert(ListOfFilesAsStream);
-
-
-            //todo
+            return await _ofxfilereader.ConvertOFXFileAsync(ListOfFilesAsStream);
+        }
+        private async Task SaveTransaction(IList<Transaction> transactionsToSave)
+        {
+            await _transaction.InsertRange(transactionsToSave);
         }
 
         public void Dispose()
         {
             _transaction.Dispose();
         }
-
     }
 }
