@@ -38,13 +38,24 @@ namespace Xayah.Data.Repositories
                 throw ex;
             }
         }
-        public virtual async Task<T> Insert(T obj)
+        public virtual async Task Insert(T obj)
         {
             try
             {
                 await _dbSet.AddAsync(obj);
                 await SaveChangesAsync();
-                return obj;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public virtual async Task InsertRange(IList<T> obj)
+        {
+            try
+            {
+                await _dbSet.AddRangeAsync(obj);
+                await SaveChangesAsync();
             }
             catch (Exception ex)
             {
