@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xayah.Application.Interfaces;
@@ -20,45 +22,42 @@ namespace Xayah.Application.Services
         private const string TransactionAmmoutPattern = @"(?<=<TRNAMT>)(-?[.0-9]*\d+)";
         private const string TransactionDescriptionPattern = @"(?<=<MEMO>)([\d\w-\s\/.])+";
 
-        public async Task<IList<Transaction>> ConvertOFXFileAsync(IList<Stream> fileStreams)
-        {
-            List<Transaction> transaction = new List<Transaction>();
 
-            foreach (var file in fileStreams)
+        public async Task<IList<Transaction>> ReadOFXFileAsync(IList<IFormFile> files)
+        {
+            var ListOfTransactions = new List<Transaction>();
+
+            foreach (var file in files)
             {
-                transaction.AddRange(await ReadStreamFileAsync(file));
+                Stream streamFile = file.OpenReadStream();
+                ListOfTransactions.AddRange(await ReadStreamFileAsync(streamFile));
             }
 
-            return transaction;
+            return ListOfTransactions;
         }
 
         private async Task<IList<Transaction>> ReadStreamFileAsync(Stream streamFile)
         {
-            List<Transaction> transaction = new List<Transaction>();
+            var transaction = new List<Transaction>();
 
-            var fullText = await new StreamReader(streamFile).ReadToEndAsync();
-
-            long accountId = long.Parse(ReadTransactionTag(fullText, AccountPattern));
-            long bankId = long.Parse(ReadTransactionTag(fullText, BankPattern));
-            string currency = ReadTransactionTag(fullText, CurrencyPattern);
-
-            foreach (Match item in Regex.Matches(fullText, TransactionPattern))
+            using (var streamReader = new StreamReader(streamFile))
             {
-                double ammout = double.Parse(ReadTransactionTag(item.Value, TransactionAmmoutPattern));
-                string type = ReadTransactionTag(item.Value, TransactionTypePattern).Trim();
-                string description = ReadTransactionTag(item.Value, TransactionDescriptionPattern);
-                DateTime dateTime = FormatTransactionDateTime(ReadTransactionTag(item.Value, TransactionDatePattern));
+                string text = await streamReader.ReadToEndAsync();
 
-                transaction.Add(new Transaction()
+                long accountId = long.Parse(ReadTransactionTag(text, AccountPattern));
+                long bankId = long.Parse(ReadTransactionTag(text, BankPattern));
+                string currency = ReadTransactionTag(text, CurrencyPattern);
+
+                foreach (Match item in Regex.Matches(text, TransactionPattern))
                 {
-                    AccountId = accountId,
-                    BankId = bankId,
-                    TransactionCurrency = currency,
-                    TransactionAmmount = ammout,
-                    TransactionType = type,
-                    TransactionDescription = description,
-                    TranscationDateTime = dateTime,
-                });
+                    decimal ammout = decimal.Parse(ReadTransactionTag(item.Value, TransactionAmmoutPattern), CultureInfo.InvariantCulture);
+                    string type = ReadTransactionTag(item.Value, TransactionTypePattern).Trim();
+                    string description = ReadTransactionTag(item.Value, TransactionDescriptionPattern);
+                    DateTime dateTime = FormatTransactionDateTime(ReadTransactionTag(item.Value, TransactionDatePattern));
+
+                    transaction.Add(
+                        new Transaction(Guid.NewGuid(), accountId, bankId, currency, type, dateTime, ammout, description));
+                }
             }
 
             return transaction;
@@ -66,14 +65,14 @@ namespace Xayah.Application.Services
 
         private string ReadTransactionTag(string text, string pattern)
         {
-            var match = Regex.Match(text, pattern);
+            Match match = Regex.Match(text, pattern);
 
             return match.Value.Trim();
         }
 
         private DateTime FormatTransactionDateTime(string text)
         {
-            string format = "yyyyMMddHHmmss";
+            var format = "yyyyMMddHHmmss";
 
             return DateTime.ParseExact(text, format, CultureInfo.InvariantCulture);
         }

@@ -1,8 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Xayah.Application.Interfaces;
+using Xayah.Application.ViewModels.Response;
 using Xayah.Web.Models;
 
 namespace Xayah.Web.Controllers
@@ -18,10 +21,16 @@ namespace Xayah.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var transactionList = await _transactionApp.GetAllTransactions();
+            IList<TransactionViewModelResponse> transactionList = await _transactionApp.GetAllTransactions();
 
+            return View(transactionList.OrderByDescending(x => x.DateTime));
+        }
 
-            return View(transactionList);
+        public async Task<IActionResult> Details(Guid id)
+        {
+            TransactionViewModelResponse transaction =await _transactionApp.GetById(id);
+
+            return View(transaction);
         }
 
 

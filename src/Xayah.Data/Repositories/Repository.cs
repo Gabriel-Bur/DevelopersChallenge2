@@ -50,7 +50,7 @@ namespace Xayah.Data.Repositories
                 throw ex;
             }
         }
-        public virtual async Task InsertRange(IList<T> obj)
+        public virtual async Task InsertRange(IEnumerable<T> obj)
         {
             try
             {

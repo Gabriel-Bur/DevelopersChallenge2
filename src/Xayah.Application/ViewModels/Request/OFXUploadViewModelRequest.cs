@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
-using Xayah.Application.Validator;
+using Xayah.Application.CustomAttribute;
 
 namespace Xayah.Application.ViewModels.Request
 {
-    public class OFXFileViewModelRequest
+    public class OFXUploadViewModelRequest
     {
-        [FileExtensionValidator(ExpectedExtension = ".ofx",
+        [FileExtensionValidationAttribute(ExpectedExtension = ".ofx",
             ErrorMessage = "Invalid file, only .ofx are allowed")]
         public IList<IFormFile> Files { get; set; }
     }

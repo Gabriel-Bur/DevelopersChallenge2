@@ -14,8 +14,6 @@ namespace Xayah.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // todo
-
             base.OnModelCreating(modelBuilder);
         }
 

@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Xayah.Application.Interfaces;
 using Xayah.Application.ViewModels.Request;
@@ -11,64 +10,53 @@ using Xayah.Domain.Entities;
 
 namespace Xayah.Application.Services
 {
-    public class TransactionAppService : IDisposable, ITransactionAppService
+    public class TransactionAppService : ITransactionAppService
     {
         private readonly IMapper _mapper;
-        private readonly ITransactionRepository _transaction;
+        private readonly ITransactionRepository _transactionRepository;
         private readonly IOFXFileReaderAppService _ofxfilereader;
+        private readonly IConciliationAppService _conciliation;
+
         public TransactionAppService(
             IMapper mapper,
-            ITransactionRepository transaction,
-            IOFXFileReaderAppService ofxfilereader)
+            ITransactionRepository transactionRepository,
+            IOFXFileReaderAppService ofxfilereader,
+            IConciliationAppService conciliation)
         {
             _mapper = mapper;
-            _transaction = transaction;
+            _transactionRepository = transactionRepository;
+            _conciliation = conciliation;
             _ofxfilereader = ofxfilereader;
         }
 
         public async Task<TransactionViewModelResponse> GetById(Guid Id)
         {
-            var transaction = _mapper.Map<TransactionViewModelResponse>(
-                await _transaction.GetById(Id));
-
-            return transaction;
+            return _mapper.Map<TransactionViewModelResponse>(
+                await _transactionRepository.GetById(Id));
         }
+
         public async Task<IList<TransactionViewModelResponse>> GetAllTransactions()
         {
-            var transactionList = _mapper.Map<IList<TransactionViewModelResponse>>(
-                await _transaction.GetAll());
-
-            return transactionList;
+            return _mapper.Map<IList<TransactionViewModelResponse>>(
+                await _transactionRepository.GetAll());
         }
 
-        public async Task BeginConciliation(OFXFileViewModelRequest OfxFileViewModelRequest)
+        public async Task UploadOFXFiles(OFXUploadViewModelRequest OfxFileViewModelRequest)
         {
-            IList<Transaction> ListOfTransactions = await
-                ReadAndConvert(OfxFileViewModelRequest);
+            //Read file(s) content and transform into a list of transactions
+            IEnumerable<Transaction> transactionsToVerify = await _ofxfilereader
+                .ReadOFXFileAsync(OfxFileViewModelRequest.Files);
 
-            await SaveTransaction(ListOfTransactions);
+            //retrieve all transactions save in database
+            IEnumerable<Transaction> transactionsFromBase =
+                await _transactionRepository.GetAll();
 
+            //remove duplicated transactions inside the list + database
+            IEnumerable<Transaction> transactionsToSave =
+                _conciliation.BeginConciliation(transactionsToVerify, transactionsFromBase);
+
+            await _transactionRepository.InsertRange(transactionsToSave);
         }
 
-        private async Task<IList<Transaction>> ReadAndConvert(OFXFileViewModelRequest OfxFileViewModelRequest)
-        {
-            List<Stream> ListOfFilesAsStream = new List<Stream>();
-
-            foreach (var file in OfxFileViewModelRequest.Files)
-            {
-                ListOfFilesAsStream.Add(file.OpenReadStream());
-            }
-
-            return await _ofxfilereader.ConvertOFXFileAsync(ListOfFilesAsStream);
-        }
-        private async Task SaveTransaction(IList<Transaction> transactionsToSave)
-        {
-            await _transaction.InsertRange(transactionsToSave);
-        }
-
-        public void Dispose()
-        {
-            _transaction.Dispose();
-        }
     }
 }

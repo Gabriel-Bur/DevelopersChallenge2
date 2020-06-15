@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 
-namespace Xayah.Application.Validator
+namespace Xayah.Application.CustomAttribute
 {
-    public class FileExtensionValidator : ValidationAttribute
+    public class FileExtensionValidationAttribute : ValidationAttribute
     {
         public string ExpectedExtension { get; set; }
 

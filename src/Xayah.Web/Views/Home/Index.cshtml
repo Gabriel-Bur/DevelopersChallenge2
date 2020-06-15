@@ -1,10 +1,15 @@
 ﻿@model IEnumerable<Xayah.Application.ViewModels.Response.TransactionViewModelResponse>
-
 @{
+    decimal total = Model.Sum(x => x.Ammount);
     ViewData["Title"] = "Transactios";
 }
 
-<h2>Transactios</h2>
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-1">Transactions</h1>
+        <h4 class="display-4">Total: @total</h4>
+    </div>
+</div>
 
 <table class="table">
     <thead>
@@ -25,26 +30,25 @@
         </tr>
     </thead>
     <tbody>
-       @foreach (var item in Model)
+        @foreach (var item in Model)
         {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Currency)
-                @Html.DisplayFor(modelItem => item.Ammount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-            </td>
-        </tr>
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DateTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Type)
+                </td>
+                <td>
+                    @String.Format("{0:0.00}", item.Ammount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { id = item.Id })
+                </td>
+            </tr>
         }
     </tbody>
 </table>

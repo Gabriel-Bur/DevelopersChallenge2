@@ -19,7 +19,6 @@ namespace Xayah.IOC
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
 
-
             //Infra - Data
             services.AddDbContext<SqlServerContext>(opt => 
                 opt.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
@@ -31,6 +30,7 @@ namespace Xayah.IOC
             //Application - Services
             services.AddScoped<IOFXFileReaderAppService, OFXFileReaderAppService>();
             services.AddScoped<ITransactionAppService, TransactionAppService>();
+            services.AddScoped<IConciliationAppService, ConciliationAppService>();
 
 
             //Application - AutoMapper

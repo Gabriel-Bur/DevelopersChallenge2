@@ -10,6 +10,6 @@ namespace Xayah.Application.Interfaces
     {
         Task<TransactionViewModelResponse> GetById(Guid Id);
         Task<IList<TransactionViewModelResponse>> GetAllTransactions();
-        Task BeginConciliation(OFXFileViewModelRequest OfxFileViewModelRequest);
+        Task UploadOFXFiles(OFXUploadViewModelRequest OfxFileViewModelRequest);
     }
 }

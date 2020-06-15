@@ -21,11 +21,13 @@ namespace Xayah.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Index(OFXFileViewModelRequest ofxFileViewModel)
+        public async Task<IActionResult> Index(OFXUploadViewModelRequest ofxFileViewModel)
         {
             if (ModelState.IsValid)
             {
-                await _transactionApp.BeginConciliation(ofxFileViewModel);
+                await _transactionApp.UploadOFXFiles(ofxFileViewModel);
+
+                return RedirectToAction("Index", "Home");
             }
 
             return View();
